@@ -1,0 +1,13 @@
+This dataset contains the sign and symptpom data of newly diabetic or would be diabetic patient. 
+
+Dataset Characteristics: Multivariate
+Feature Type: Categorical, Integer
+Features: 16
+
+This has been col-
+
+lected using direct questionnaires from the patients of Sylhet Diabetes
+
+Hospital in Sylhet, Bangladesh and approved by a doctor.
+
+Has Missing Values? -> Yes 
