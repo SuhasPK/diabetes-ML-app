@@ -140,7 +140,7 @@ def run_eda_app():
                 class_df.columns = ["Class type","Counts"]
                 st.dataframe(class_df)
 
-            with st.expander(" 'Age' Frequency Distribution"):
+            with st.expander(" 'Age' Frequency Distribution Table"):
                 st.dataframe(freq_df[['Age','count']])
 
         with st.expander("Outlier Detection Plot"):
