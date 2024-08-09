@@ -64,8 +64,11 @@ def get_value(val,my_dict):
 
 @st.cache_resource
 def load_model(model_file):
-	loaded_model = joblib.load(open(os.path.join(model_file),"rb"))
-	return loaded_model
+    if os.path.exists(model_file):
+        return joblib.load(open(model_file, "rb"))
+    else:
+        st.error(f"Model file {model_file} not found!")
+        return None
 
 
 
