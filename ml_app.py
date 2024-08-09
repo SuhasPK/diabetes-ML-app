@@ -2,6 +2,7 @@ import streamlit as st # type: ignore
 import joblib  # type: ignore
 import os
 import numpy as np
+import pickle
 
 
 attribute_info = """
@@ -154,7 +155,7 @@ def run_ml_app():
     with st.expander("Prediction Result "):
           single_sample = np.array(encoded_result).reshape(1,-1)
           
-          loaded_model = load_model("models/logistic_regression_model_diabetes.pkl")
+          loaded_model = load_model("models/logistic_regression_model_diabetes_09_08_2024.pkl")
           prediction = loaded_model.predict(single_sample)
           predict_probability = loaded_model.predict_proba(single_sample)
           # st.write(predict_probability)
