@@ -1,3 +1,0 @@
-This folder consists of two pickle files. 
-1. decision_tree_model_diabetes.pkl
-2. logistic_regression_model_diabetes.pkl

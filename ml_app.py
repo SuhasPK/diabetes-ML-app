@@ -1,134 +1,83 @@
-import streamlit as st 
+import streamlit as st
 import joblib
-import os
 import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
-attrib_info = """
-#### Attribute Information:
-    - Age 1.20-65
-    - Sex 1. Male, 2.Female
-    - Polyuria 1.Yes, 2.No.
-    - Polydipsia 1.Yes, 2.No.
-    - sudden weight loss 1.Yes, 2.No.
-    - weakness 1.Yes, 2.No.
-    - Polyphagia 1.Yes, 2.No.
-    - Genital thrush 1.Yes, 2.No.
-    - visual blurring 1.Yes, 2.No.
-    - Itching 1.Yes, 2.No.
-    - Irritability 1.Yes, 2.No.
-    - delayed healing 1.Yes, 2.No.
-    - partial paresis 1.Yes, 2.No.
-    - muscle stiffness 1.Yes, 2.No.
-    - Alopecia 1.Yes, 2.No.
-    - Obesity 1.Yes, 2.No.
-    - Class 1.Positive, 2.Negative.
+# Load the model and scaler
+model = joblib.load('models/logistic_regression_model.pkl')
+scaler = joblib.load('models/scaler.pkl')
 
-"""
-label_dict = {"No":0,"Yes":1}
-gender_map = {"Female":0,"Male":1}
-target_label_map = {"Negative":0,"Positive":1}
+# Function to predict diabetes risk
+def predict_diabetes(features):
+    # Convert features into a DataFrame
+    features_df = pd.DataFrame([features], columns=[
+        'age', 'gender', 'polyuria', 'polydipsia', 'sudden_weight_loss', 'weakness',
+        'polyphagia', 'genital_thrush', 'visual_blurring', 'itching', 'irritability',
+        'delayed_healing', 'partial_paresis', 'muscle_stiffness', 'alopecia', 'obesity'
+    ])
+    # Feature Scaling
+    features_scaled = scaler.transform(features_df)
+    # Predict probability
+    probability = model.predict_proba(features_scaled)[0, 1]
+    return probability
 
-['age', 'gender', 'polyuria', 'polydipsia', 'sudden_weight_loss',
-       'weakness', 'polyphagia', 'genital_thrush', 'visual_blurring',
-       'itching', 'irritability', 'delayed_healing', 'partial_paresis',
-       'muscle_stiffness', 'alopecia', 'obesity', 'class']
-
-
-def get_fvalue(val):
-	feature_dict = {"No":0,"Yes":1}
-	for key,value in feature_dict.items():
-		if val == key:
-			return value 
-
-def get_value(val,my_dict):
-	for key,value in my_dict.items():
-		if val == key:
-			return value 
-
-
-
-# Load ML Models
-@st.cache_data
-def load_model(model_file):
-	loaded_model = joblib.load(open(os.path.join(model_file),"rb"))
-	return loaded_model
-
-
+# Run the ML app
 def run_ml_app():
-	st.subheader("Machine Learning Section")
-	loaded_model = load_model("models/logistic_regression_model.pkl")
-
-	with st.expander("Attributes Info"):
-		st.markdown(attrib_info,unsafe_allow_html=True)
-
-	# Layout
-	col1,col2 = st.columns(2)
-
-	with col1:
-		age = st.number_input("Age",10,100)
-		gender = st.radio("Gender",("Female","Male"))
-		polyuria = st.radio("Polyuria",["No","Yes"])
-		polydipsia = st.radio("Polydipsia",["No","Yes"]) 
-		sudden_weight_loss = st.radio("Sudden_weight_loss",["No","Yes"])
-		weakness = st.radio("weakness",["No","Yes"]) 
-		polyphagia = st.radio("polyphagia",["No","Yes"]) 
-		genital_thrush = st.radio("Genital_thrush",["No","Yes"]) 
-		
-	
-	with col2:
-		visual_blurring = st.radio("Visual_blurring",["No","Yes"])
-		itching = st.radio("itching",["No","Yes"]) 
-		irritability = st.radio("irritability",["No","Yes"]) 
-		delayed_healing = st.radio("delayed_healing",["No","Yes"]) 
-		partial_paresis = st.radio("Partial_paresis",["No","Yes"])
-		muscle_stiffness = st.radio("muscle_stiffness",["No","Yes"]) 
-		alopecia = st.radio("alopecia",["No","Yes"]) 
-		obesity = st.radio("obesity",["No","Yes"]) 
-
-	with st.expander("Your Selected Options"):
-		result = {'age':age,
-		'gender':gender,
-		'polyuria':polyuria,
-		'polydipsia':polydipsia,
-		'sudden_weight_loss':sudden_weight_loss,
-		'weakness':weakness,
-		'polyphagia':polyphagia,
-		'genital_thrush':genital_thrush,
-		'visual_blurring':visual_blurring,
-		'itching':itching,
-		'irritability':irritability,
-		'delayed_healing':delayed_healing,
-		'partial_paresis':partial_paresis,
-		'muscle_stiffness':muscle_stiffness,
-		'alopecia':alopecia,
-		'obesity':obesity}
-		st.write(result)
-		encoded_result = []
-		for i in result.values():
-			if type(i) == int:
-				encoded_result.append(i)
-			elif i in ["Female","Male"]:
-				res = get_value(i,gender_map)
-				encoded_result.append(res)
-			else:
-				encoded_result.append(get_fvalue(i))
-
-
-		# st.write(encoded_result)
-	with st.expander("Prediction Results"):
-		single_sample = np.array(encoded_result).reshape(1,-1)
-
-		
-		prediction = loaded_model.predict(single_sample)
-		pred_prob = loaded_model.predict_proba(single_sample)
-		#st.write(prediction)
-		if prediction == 1:
-			st.warning("Positive Risk-{}".format(prediction[0]))
-			pred_probability_score = {"Negative DM":pred_prob[0][0]*100,"Positive DM":pred_prob[0][1]*100}
-			st.subheader("Prediction Probability Score")
-			st.json(pred_probability_score)
-		else:
-			st.success("Negative Risk-{}".format(prediction[0]))
-			pred_probability_score = {"Negative DM":pred_prob[0][0]*100,"Positive DM":pred_prob[0][1]*100}
-			st.subheader("Prediction Probability Score")
-			st.json(pred_probability_score)
+    st.subheader("Machine Learning")
+    
+    st.write("### Input the features for diabetes risk prediction:")
+    
+    col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
+    
+    with col1:
+        age = st.number_input("Age", min_value=0, max_value=120, value=30)
+        gender = st.radio("Gender", options=["Female", "Male"], index=1)
+        gender = 1 if gender == "Male" else 0
+        polyuria = st.radio("Polyuria", options=["No", "Yes"], index=0)
+        polyuria = 1 if polyuria == "Yes" else 0
+        polydipsia = st.radio("Polydipsia", options=["No", "Yes"], index=0)
+        polydipsia = 1 if polydipsia == "Yes" else 0
+        sudden_weight_loss = st.radio("Sudden Weight Loss", options=["No", "Yes"], index=0)
+        sudden_weight_loss = 1 if sudden_weight_loss == "Yes" else 0
+    
+    with col2:
+        weakness = st.radio("Weakness", options=["No", "Yes"], index=0)
+        weakness = 1 if weakness == "Yes" else 0
+        polyphagia = st.radio("Polyphagia", options=["No", "Yes"], index=0)
+        polyphagia = 1 if polyphagia == "Yes" else 0
+        genital_thrush = st.radio("Genital Thrush", options=["No", "Yes"], index=0)
+        genital_thrush = 1 if genital_thrush == "Yes" else 0
+        visual_blurring = st.radio("Visual Blurring", options=["No", "Yes"], index=0)
+        visual_blurring = 1 if visual_blurring == "Yes" else 0
+    
+    with col3:
+        itching = st.radio("Itching", options=["No", "Yes"], index=0)
+        itching = 1 if itching == "Yes" else 0
+        irritability = st.radio("Irritability", options=["No", "Yes"], index=0)
+        irritability = 1 if irritability == "Yes" else 0
+        delayed_healing = st.radio("Delayed Healing", options=["No", "Yes"], index=0)
+        delayed_healing = 1 if delayed_healing == "Yes" else 0
+        partial_paresis = st.radio("Partial Paresis", options=["No", "Yes"], index=0)
+        partial_paresis = 1 if partial_paresis == "Yes" else 0
+    
+    with col4:
+        muscle_stiffness = st.radio("Muscle Stiffness", options=["No", "Yes"], index=0)
+        muscle_stiffness = 1 if muscle_stiffness == "Yes" else 0
+        alopecia = st.radio("Alopecia", options=["No", "Yes"], index=0)
+        alopecia = 1 if alopecia == "Yes" else 0
+        obesity = st.radio("Obesity", options=["No", "Yes"], index=0)
+        obesity = 1 if obesity == "Yes" else 0
+    
+    features = [age, gender, polyuria, polydipsia, sudden_weight_loss, weakness,
+                polyphagia, genital_thrush, visual_blurring, itching, irritability,
+                delayed_healing, partial_paresis, muscle_stiffness, alopecia, obesity]
+    
+    if st.button("Predict"):
+        probability = predict_diabetes(features)*100
+        st.write(f"### Risk Probability: {probability:.2f}")
+        
+        if probability > 0.5:
+            st.warning("#### Based on the provided features, the risk of diabetes is high.")
+        else:
+            st.success("#### Based on the provided features, the risk of diabetes is low.")
