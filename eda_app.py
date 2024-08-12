@@ -1,11 +1,24 @@
-import streamlit as st # type: ignore
-import pandas as pd # type: ignore
-import matplotlib.pyplot as plt # type: ignore
-import matplotlib # type: ignore
-matplotlib.use('Agg')
-import seaborn as sns # type: ignore
-import plotly.express as px # type: ignore
+import streamlit as st  # type: ignore
+
+# EDA
+import numpy as np
+import pandas as pd
+
+# Viz
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.style.use('dark_background')
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+# Ignore warning
+import warnings
+warnings.filterwarnings("ignore")
+
 import io
+
+##################################################################################
 
 def load_data(data):
     df = pd.read_csv(data)
@@ -13,11 +26,13 @@ def load_data(data):
 
 def run_eda_app():
     st.subheader('Exploratory Data Analysis')
-    df = load_data('data/diabetes_data_upload.csv')
-    df_encoded = load_data('data/diabetes_data_upload_clean.csv')
-    freq_df = load_data('data/freqdist_of_age_data.csv')
+    st.markdown('Do explore all features and its relation with the classes.')
+    st.markdown('Try to interprete the distribution graph.')
+    st.markdown('Download option is also available.')
+    df = load_data('notebooks/dataset/diabetes_data_upload.csv')
+    df_encoded = load_data('notebooks/dataset/encoded_data.csv')
 
-    submenu = st.sidebar.selectbox('Submenu',['Descriptive','Plots'])
+    submenu = st.sidebar.selectbox('Submenu', ['Descriptive', 'Plots'])
     if submenu == 'Descriptive':
         with st.expander("Data-set"):
             st.dataframe(df)
@@ -32,159 +47,199 @@ def run_eda_app():
 
         with st.expander("Gender distribution "):
             st.dataframe(df['Gender'].value_counts())
-            st.write("""This show how many of the test subjects were male and female.""")
+            st.write("""This shows how many of the test subjects were male and female.""")
 
-######################PLOTS###################################################
-
+    ######################  PLOTS  ###################################################
+    
     elif submenu == 'Plots':
         st.subheader("Data visualizations")
-        st.write(""" Visualization are very powerful tool for understanding data in a simple way. Do go through all of it. """)
-        col1, col2 = st.columns([2,1])
-        
-        with col1:
-            with st.expander("Gender Distribution "):
-                fig, ax = plt.subplots()
-    # Plotting the count plot with hue for different colors
-                sns.countplot(x='Gender', data=df, ax=ax, palette='Set2')
+        st.write("""Visualizations are a very powerful tool for understanding data in a simple way. Do go through all of it.""")
 
-    # Adding count labels on top of each bar
-                for p in ax.patches:
-                    ax.annotate(f'{int(p.get_height())}', 
-                    (   p.get_x() + p.get_width() / 2., p.get_height()), 
-                        ha='center', va='center', 
-                        xytext=(0, 5), 
-                        textcoords='offset points')
+        with st.expander("Class Distribution "):
+            class_count = df_encoded['class'].value_counts().reset_index()
+            class_count.columns = ['class', 'count']
+            class_count['class'] = class_count['class'].map({0: 'Negative', 1: 'Positive'})
 
-                ax.set_title('Gender Distribution')    
-                st.pyplot(fig)
+            # Custom colors for the bars
+            colors = {'Positive': 'red', 'Negative': 'green'}
 
-                buf = io.BytesIO()
-                fig.savefig(buf, format="png")
-                buf.seek(0)
+            fig = px.bar(class_count, x='class', y='count',
+                         labels={'class': 'Class', 'count': 'Count'},
+                         title='Count vs Class',
+                         template="plotly_dark",
+                         color='class',  # Color the bars based on class
+                         color_discrete_map=colors,
+                         text='count'  # Add count numbers as text on the bars
+                         )
 
-            # Adding download button
-                st.download_button(
-                    label="Download plot",
-                    data=buf,
-                    file_name="gender_distribution_plot.png",
-                    mime="image/png"
-                )
+            # Adjust the text position to be inside the bars
+            fig.update_traces(textposition='inside')
+            fig.update_layout(width=600, height=500)
+            fig.update_traces(marker_line_width=2, marker_line_color='white', width=0.4)  # Adjust width as needed
+            fig.write_image("images/Count_vs_Class.png")
 
-            with st.expander("Class Distribution "):
-                fig, ax = plt.subplots()
-    # Plotting the count plot with hue for different colors
-                sns.countplot(x='class', data=df, ax=ax, palette='Set2')
+            st.plotly_chart(fig)
 
-    # Adding count labels on top of each bar
-                for p in ax.patches:
-                    ax.annotate(f'{int(p.get_height())}', 
-                    (   p.get_x() + p.get_width() / 2., p.get_height()), 
-                        ha='center', va='center', 
-                        xytext=(0, 5), 
-                        textcoords='offset points')
-
-                ax.set_title('Class Distribution')    
-                st.pyplot(fig)
-
-                buf = io.BytesIO()
-                fig.savefig(buf, format="png")
-                buf.seek(0)
-
-            # Adding download button
-                st.download_button(
-                    label="Download plot",
-                    data=buf,
-                    file_name="class_distribution_plot.png",
-                    mime="image/png"
-                )
-
-            with st.expander(" 'Age' Frequency Distribution "):
-                fig, ax = plt.subplots()
-    # Plotting the count plot with hue for different colors
-                sns.barplot(x='Age', y='count' ,data=freq_df, ax=ax, palette='Set2')
-
-    # Adding count labels on top of each bar
-                for p in ax.patches:
-                    ax.annotate(f'{int(p.get_height())}', 
-                    (   p.get_x() + p.get_width() / 2., p.get_height()), 
-                        ha='center', va='center', 
-                        xytext=(0, 5), 
-                        textcoords='offset points')
-
-                ax.set_title('Age Frequency Distribution') 
-                ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')   
-                st.pyplot(fig)
-
-                buf = io.BytesIO()
-                fig.savefig(buf, format="png")
-                buf.seek(0)
-
-            # Adding download button
-                st.download_button(
-                    label="Download plot",
-                    data=buf,
-                    file_name="age_freq_distribution_plot.png",
-                    mime="image/png"
-                )
-
-        with col2:
-            with st.expander("Gender Distribution Table"):
-                gen_df = df['Gender'].value_counts().to_frame()
-                gen_df = gen_df.reset_index()
-                gen_df.columns = ["Gender type","Counts"]
-                st.dataframe(gen_df)
-
-            with st.expander("Class Distribution Table"):
-                class_df = df['class'].value_counts().to_frame()
-                class_df = class_df.reset_index()
-                class_df.columns = ["Class type","Counts"]
-                st.dataframe(class_df)
-
-            with st.expander(" 'Age' Frequency Distribution Table"):
-                st.dataframe(freq_df[['Age','count']])
-
-        with st.expander("Outlier Detection Plot"):
-    # Creating the box plot with grid and title
-            p = px.box(df, x='Age', color = 'Gender', template='plotly_dark', title='Outlier Detection in Age Distribution')
-    
-    # Updating layout to include grid lines
-            p.update_layout(
-                xaxis=dict(showgrid=True),  # Enable grid for x-axis
-                yaxis=dict(showgrid=True),  # Enable grid for y-axis
-            )   
-    
-    # Display the plot in Streamlit
-            st.plotly_chart(p)
-
-    # Save the plot to a BytesIO object
+            # Create an in-memory byte buffer
             buf = io.BytesIO()
-            p.write_image(buf, format="png")
+            fig.write_image(buf, format="png")
             buf.seek(0)
 
-    # Adding download button
+            # Download button to download the plot as PNG
             st.download_button(
                 label="Download plot",
                 data=buf,
-                file_name="outlier_detection_plot.png",
-                mime="image/png"
-            )      
-
-        with st.expander("Correlation plot"):
-            corr_matrix = df_encoded.corr()
-            fig = plt.figure(figsize=(25,15))
-            sns.heatmap(corr_matrix, annot=True)
-            plt.title("Correlation plot of UCI diabetes data")
-    
-            st.pyplot(fig)
-
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png")
-            buf.seek(0)
-
-            # Adding download button
-            st.download_button(
-                label="Download plot",
-                data=buf,
-                file_name="correlation_plot.png",
+                file_name="Count_vs_Class.png",
                 mime="image/png"
             )
+
+        with st.expander("Gender Distribution "):
+            class_count = df_encoded['gender'].value_counts().reset_index()
+            class_count.columns = ['gender', 'count']
+            class_count['gender'] = class_count['gender'].map({0: 'Female', 1: 'Male'})
+
+            # Custom colors for the bars
+            colors = {'Male': 'orange', 'Female': 'green'}
+
+            fig = px.bar(class_count, x='gender', y='count',
+                         labels={'gender': 'Gender', 'count': 'Count'},
+                         title='Count vs Gender',
+                         template="plotly_dark",
+                         color='gender',  # Color the bars based on class
+                         color_discrete_map=colors,
+                         text='count'  # Add count numbers as text on the bars
+                         )
+
+            # Adjust the text position to be inside the bars
+            fig.update_traces(textposition='inside')
+            fig.update_layout(width=1000, height=600)
+            fig.update_traces(marker_line_width=2, marker_line_color='white', width=0.4)  # Adjust width as needed
+            fig.write_image("images/Count_vs_Gender.png")
+
+            st.plotly_chart(fig)
+
+            # Create an in-memory byte buffer
+            buf = io.BytesIO()
+            fig.write_image(buf, format="png")
+            buf.seek(0)
+
+            # Download button to download the plot as PNG
+            st.download_button(
+                label="Download plot",
+                data=buf,
+                file_name="Count_vs_Gender.png",
+                mime="image/png"
+            )
+
+        with st.expander("Distribution plot "):
+            attribute_list = ['polyuria', 'polydipsia', 'sudden_weight_loss',
+                              'weakness', 'polyphagia', 'genital_thrush', 'visual_blurring',
+                              'itching', 'irritability', 'delayed_healing', 'partial_paresis',
+                              'muscle_stiffness', 'alopecia', 'obesity']
+
+            selected_attribute = st.selectbox("Select attribute", attribute_list)
+
+            def distribution_plot(attribute):
+                # Check if the attribute is in the DataFrame
+                if attribute not in df_encoded.columns:
+                    raise ValueError(f"Attribute '{attribute}' not found in the DataFrame.")
+        
+                # Create a copy of the DataFrame and create age groups
+                temp_df = df_encoded.copy()
+                bins = [0, 20, 40, 60, 80, 100]
+                labels = ['0-20', '20-40', '40-60', '60-80', '80-100']
+                temp_df['age_group'] = pd.cut(temp_df['age'], bins=bins, labels=labels, right=False)
+
+                # Convert class and gender columns
+                temp_df['class'] = temp_df['class'].map({0: 'Negative', 1: 'Positive'})
+                temp_df['gender'] = temp_df['gender'].map({0: 'Female', 1: 'Male'})
+
+                # Filter and create dataframes for males and females
+                male_df = temp_df[temp_df['gender'] == 'Male']
+                female_df = temp_df[temp_df['gender'] == 'Female']
+
+                # Create DataFrame-1: All males with age groups and attribute
+                dataframe_1 = male_df.groupby(['age_group', 'class'])[attribute].sum().reset_index(name='count')
+
+                # Create DataFrame-2: All females with age groups and attribute
+                dataframe_2 = female_df.groupby(['age_group', 'class'])[attribute].sum().reset_index(name='count')
+
+                # Create subplots: one row, two columns
+                fig = make_subplots(
+                    rows=1, cols=2,
+                    subplot_titles=('Male', 'Female'),
+                    shared_yaxes=True,
+                    horizontal_spacing=0.1
+                )
+
+                # Plot for Male
+                fig.add_trace(go.Bar(
+                    x=dataframe_1[dataframe_1['class'] == 'Positive']['age_group'],
+                    y=dataframe_1[dataframe_1['class'] == 'Positive']['count'],
+                    name='Positive',
+                    marker_color='red'
+                ), row=1, col=1)
+
+                fig.add_trace(go.Bar(
+                    x=dataframe_1[dataframe_1['class'] == 'Negative']['age_group'],
+                    y=dataframe_1[dataframe_1['class'] == 'Negative']['count'],
+                    name='Negative',
+                    marker_color='green'
+                ), row=1, col=1)
+
+                # Plot for Female
+                fig.add_trace(go.Bar(
+                    x=dataframe_2[dataframe_2['class'] == 'Positive']['age_group'],
+                    y=dataframe_2[dataframe_2['class'] == 'Positive']['count'],
+                    name='Positive',
+                    marker_color='orange'
+                ), row=1, col=2)
+
+                fig.add_trace(go.Bar(
+                    x=dataframe_2[dataframe_2['class'] == 'Negative']['age_group'],
+                    y=dataframe_2[dataframe_2['class'] == 'Negative']['count'],
+                    name='Negative',
+                    marker_color='blue'
+                ), row=1, col=2)
+
+                # Update layout
+                fig.update_layout(
+                    title_text=f'Distribution of {attribute} by Age Group and Gender',
+                    xaxis_title='Age Group',
+                    yaxis_title='Count',
+                    barmode='group',
+                    template='plotly_dark',
+                    legend_title='Class',
+                    xaxis=dict(
+                        tickangle=-45
+                    ),
+                    xaxis2=dict(
+                        tickangle=-45
+                    )   
+                )
+                fig.update_layout(width=1000, height=600)
+                fig.update_traces(marker_line_width=1, marker_line_color='white', width=0.3)
+                filename = f"images/distribution_{attribute}_class_gender_age_group.png"
+                fig.write_image(filename)
+        
+                # Show plot
+                st.plotly_chart(fig)
+
+                # Create an in-memory byte buffer
+                buf = io.BytesIO()
+                fig.write_image(buf, format="png")
+                buf.seek(0)
+
+                # Download button to download the plot as PNG
+                st.download_button(
+                    label="Download plot",
+                    data=buf,
+                    file_name=f"Distribution_of_{attribute}_by_age_and_gender.png",
+                    mime="image/png"
+                )
+
+            if selected_attribute:
+                distribution_plot(selected_attribute)
+
+if __name__ == '__main__':
+    run_eda_app()
