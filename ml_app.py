@@ -77,7 +77,7 @@ def run_ml_app():
         probability = predict_diabetes(features)*100
         st.write(f"### Risk Probability: {probability:.2f}")
         
-        if probability > 0.5:
+        if probability > 50:
             st.warning("#### Based on the provided features, the risk of diabetes is high.")
         else:
             st.success("#### Based on the provided features, the risk of diabetes is low.")
