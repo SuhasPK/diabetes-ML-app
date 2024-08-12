@@ -1,5 +1,7 @@
 # Diabetes Prediction Web App
 
+[The web app](https://app-diabetes-ml-prediction.streamlit.app/){: .btn}
+
 ## Project Overview
 This web application is designed to predict the risk of diabetes in individuals based on early-stage symptoms. The application is developed using **Streamlit**, a Python-based framework for building interactive web apps. The prediction model is powered by machine learning algorithms, specifically **Logistic Regression** and **Decision Tree** classifiers.
 
