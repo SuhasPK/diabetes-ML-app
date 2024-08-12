@@ -3,8 +3,30 @@ from eda_app import run_eda_app
 from about_app import about
 from ml_app import run_ml_app
 
+# Set page configuration for SEO and mobile compatibility
+st.set_page_config(
+    page_title="Diabetes Risk Prediction App",
+    page_icon=":bar_chart:",  # Use a relevant icon or emoji
+    layout="wide",  # Adjust layout as needed
+    initial_sidebar_state="expanded"  # Sidebar state
+)
+
+# Inject additional HTML for SEO
+st.markdown("""
+    <meta name="description" content="Predict the risk of diabetes based on various health attributes using a Logistic Regression model.">
+    <meta name="keywords" content="diabetes, prediction, health, machine learning, logistic regression">
+    <meta name="author" content="Suhas. P. K">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="Diabetes Risk Prediction App">
+    <meta property="og:description" content="Predict the risk of diabetes based on various health attributes using a Logistic Regression model.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://app-diabetes-ml-prediction.streamlit.app/">
+    <meta property="og:image" content="https://your-app-url/static/diabetes-prediction.png">
+    """, unsafe_allow_html=True)
+
 def main():
     st.title("Diabetes Risk Detection")
+    st.warning("### Suhas. P. K")
 
     menu = ['Home', 'EDA', 'ML', 'About']
     choice = st.sidebar.selectbox('Menu', menu)

@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 # Load the model and scaler
-model = joblib.load('models/logistic_regression_model.pkl')
+model = joblib.load('models/best_logistic_regression_model.pkl')
 scaler = joblib.load('models/scaler.pkl')
 
 # Function to predict diabetes risk
@@ -24,8 +24,6 @@ def predict_diabetes(features):
 
 # Run the ML app
 def run_ml_app():
-    st.subheader("Machine Learning")
-    
     st.write("### Input the features for diabetes risk prediction:")
     
     col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
@@ -75,9 +73,24 @@ def run_ml_app():
     
     if st.button("Predict"):
         probability = predict_diabetes(features)*100
-        st.write(f"### Risk Probability: {probability:.2f}")
+        st.write(f"### Risk Probability: {probability:.2f}%")
         
         if probability > 50:
             st.warning("#### Based on the provided features, the risk of diabetes is high.")
         else:
             st.success("#### Based on the provided features, the risk of diabetes is low.")
+    
+    # Add expander for model details
+    with st.expander("Model Details"):
+        st.write('### Logistic Regression with Hyperparameter tuning.')
+        st.write("#### Best Hyperparameters:")
+        st.write(f"- C: 0.1")
+        st.write(f"- Penalty: l2")
+        st.write(f"- Solver: newton-cg")
+        
+        st.write("#### Model Performance:")
+        st.write(f"- Best Training Accuracy: 93.14%")
+        st.write(f"- Test Accuracy: 90.38%")
+        # Add additional metrics if available, like recall, precision, etc.
+
+run_ml_app()
